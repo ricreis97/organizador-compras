@@ -7,16 +7,21 @@
   <style>
     body { font-family: Arial, sans-serif; margin-bottom:60px; }
     nav { text-align: center; margin-bottom: 20px; }
-    nav button { margin: 5px; font-size: 18px; padding: 5px 10px; }
+    nav button { margin: 5px; font-size: 18px; padding: 5px 10px; border-radius: 25px; }
     h1 { text-align: center; }
-    input, button { padding: 5px; font-size: 16px; }
-    input[type="text"] { text-align: right; }
+    input, button { padding: 5px; font-size: 16px; border-radius: 15px; }
+    input[type="text"], input[type="number"] { 
+      width: 60%; 
+      margin: 10px 0; 
+      text-align: right; 
+      border-radius: 15px;
+    }
     #listaCompras, #itensSugeridos { list-style-type: none; padding: 0; }
     li { margin: 20px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
     .comprado { text-decoration: line-through; color: green; }
     .erro { color: red; font-size: 14px; margin-top: 5px; }
     .fotoProduto { width: 50px; height: 50px; object-fit: cover; margin-right:5px; border-radius:4px; }
-    .qtdControles button { margin: 0 2px; font-size: 16px; }
+    .qtdControles button { margin: 0 2px; font-size: 16px; border-radius: 12px; }
     .iconBtn { background:none; border:none; cursor:pointer; font-size:18px; margin: 0 4px; }
     #catalogoGrid { 
       display:grid; 
@@ -40,7 +45,7 @@
     .produtoCatalogo:hover { background:#ddd; }
     #modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000; }
     #modalContent { background:#fff; padding:20px; border-radius:8px; }
-    #campoPesquisa { margin:10px auto; display:block; width:50%; }
+    #campoPesquisa { margin:10px auto; display:block; width:50%; border-radius: 15px; padding: 8px; }
     .total {
       font-weight: bold;
       position: fixed;
@@ -264,25 +269,6 @@
         el.style.display = el.textContent.toLowerCase().includes(filtro) ? 'flex':'none';
       });
     }
-
-    const nomes = [
-      "Maçã","Banana","Laranja","Batata","Cenoura","Tomate","Alface","Couve","Espinafre",
-      "Carne Bovina","Frango","Peixe","Ovos","Arroz","Feijão","Macarrão","Farinha de trigo","Açúcar","Sal","Óleo","Café","Enlatados",
-      "Shampoo","Condicionador","Sabonete","Pasta de dente","Escova de dente","Absorventes","Desodorante",
-      "Detergente","Sabão em pó","Água sanitária","Amaciante","Desinfetante","Esponjas","Palha de aço",
-      "Água","Sucos","Refrigerantes","Cervejas","Sucos em pó","Congelados","Laticínios","Pães e frios","Biscoitos",
-      "Doces","Itens de papelaria","Descartáveis","Produtos para animais","Artigos para casa"
-    ];
-
-    const grid = document.getElementById("catalogoGrid");
-    nomes.forEach(nome=>{
-      const link = `https://images.unsplash.com/photo-1579634265855-00df1a2a9985?crop=entropy&cs=tinysrgb&fit=max&ixid=MnwzNjcwMHwwfDF8c2VhY2h8MTl8fGJvY29saWNhfGVufDB8fHx8fDE2NTM5MTc0NzE&ixlib=rb-1.2.1&q=80&w=1080`; // Substitua com imagens específicas
-      grid.innerHTML += `
-        <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
-          <img src="${link}" alt="${nome}">
-          <span>${nome}</span>
-        </div>`; 
-    });
   </script>
 </body>
 </html>
