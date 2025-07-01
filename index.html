@@ -275,8 +275,8 @@
     ];
 
     const grid = document.getElementById("catalogoGrid");
-    nomes.forEach(nome=>{ 
-      const link = `https://source.unsplash.com/100x100/?${encodeURIComponent(nome)}`; 
+    nomes.forEach(nome=>{
+      const link = `https://images.unsplash.com/photo-1579634265855-00df1a2a9985?crop=entropy&cs=tinysrgb&fit=max&ixid=MnwzNjcwMHwwfDF8c2VhY2h8MTl8fGJvY29saWNhfGVufDB8fHx8fDE2NTM5MTc0NzE&ixlib=rb-1.2.1&q=80&w=1080`; // Substitua com imagens específicas
       grid.innerHTML += `
         <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
           <img src="${link}" alt="${nome}">
