@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Organizador de Compras</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin-bottom:60px; }
+    nav { text-align: center; margin-bottom: 20px; }
+    nav button { margin: 5px; font-size: 18px; padding: 5px 10px; }
+    h1 { text-align: center; }
+    input, button { padding: 5px; font-size: 16px; }
+    input[type="text"] { text-align: right; }
+    #listaCompras, #itensSugeridos { list-style-type: none; padding: 0; }
+    li { margin: 20px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .comprado { text-decoration: line-through; color: green; }
+    .erro { color: red; font-size: 14px; margin-top: 5px; }
+    .fotoProduto { width: 50px; height: 50px; object-fit: cover; margin-right:5px; border-radius:4px; }
+    .qtdControles button { margin: 0 2px; font-size: 16px; }
+    .iconBtn { background:none; border:none; cursor:pointer; font-size:18px; margin: 0 4px; }
+    #catalogoGrid { 
+      display:grid; 
+      grid-template-columns: repeat(3, 1fr); 
+      gap:15px; 
+      margin-top:10px;
+    }
+    .produtoCatalogo { 
+      background:#f0f0f0; 
+      padding:10px; 
+      text-align:center; 
+      cursor:pointer; 
+      border-radius:8px; 
+      width:2cm; 
+      height:2cm; 
+      display:flex; 
+      flex-direction:column; 
+      justify-content:center; 
+      align-items:center;
+    }
+    .produtoCatalogo:hover { background:#ddd; }
+    #modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000; }
+    #modalContent { background:#fff; padding:20px; border-radius:8px; }
+    #campoPesquisa { margin:10px auto; display:block; width:50%; }
+    .total {
+      font-weight: bold;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #f0f0f0;
+      padding: 10px;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+      text-align: center;
+      z-index: 999;
+    }
+    .produtoCatalogo img { width: 100%; height: 100%; object-fit: cover; border-radius:5px; }
+  </style>
+</head>
+<body>
+  <h1>Organizador de Compras</h1>
+  <nav>
+    <button onclick="abrirAba('inicio')">🏠 Início</button>
+    <button onclick="abrirAba('catalogo')">🛒 Catálogo</button>
+  </nav>
+
+  <!-- INICIO -->
+  <div id="abaInicio">
+    <h2>Adicione um item</h2>
+    <input type="text" id="itemInput" placeholder="Digite o nome do item">
+    <input type="text" id="precoInput" placeholder="Preço (R$)" oninput="mascaraMoeda(this)">
+    <input type="number" id="quantidadeInput" placeholder="Quantidade" step="1" min="1">
+    <label for="fotoInput" class="iconBtn" style="cursor:pointer;">
+      📷 
+    </label>
+    <input type="file" id="fotoInput" accept="image/*" capture="camera" style="display:none;">
+    <button id="adicionarBtn">➕</button>
+    <p id="mensagemErro" class="erro"></p>
+
+    <h2>Lista de Compras</h2>
+    <ul id="listaCompras"></ul>
+  </div>
+
+  <!-- CATALOGO -->
+  <div id="abaCatalogo" style="display:none;">
+    <h2>Catálogo de Produtos</h2>
+    <input type="text" id="campoPesquisa" placeholder="Pesquisar produto..." onkeyup="filtrarCatalogo()">
+    <div id="catalogoGrid">
+      <!-- gerado automaticamente -->
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal">
+    <div id="modalContent">
+      <h3 id="modalTitulo"></h3>
+      <p>Preço (R$): <input type="text" id="modalPreco" placeholder="" oninput="mascaraMoeda(this)"></p>
+      <p>Quantidade: <input type="number" id="modalQtd" min="1" value="1"></p>
+      <button onclick="confirmarModal()">✅ Confirmar</button>
+      <button onclick="fecharModal()">❌ Cancelar</button>
+    </div>
+  </div>
+
+  <!-- TOTAL FIXO -->
+  <div class="total">
+    <p>Total Estimado: R$ <span id="total">0,00</span></p>
+  </div>
+
+  <script>
+    let produtoSelecionadoModal = "";
+
+    function abrirAba(qual) {
+      document.getElementById("abaInicio").style.display = qual==='inicio' ? 'block':'none';
+      document.getElementById("abaCatalogo").style.display = qual==='catalogo' ? 'block':'none';
+    }
+
+    function abrirModal(produto){
+      produtoSelecionadoModal = produto;
+      document.getElementById("modalTitulo").textContent = produto;
+      document.getElementById("modalPreco").value = "";
+      document.getElementById("modalQtd").value = 1;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    function fecharModal(){
+      document.getElementById("modal").style.display = "none";
+    }
+
+    function confirmarModal(){
+      const preco = parseFloat(document.getElementById("modalPreco").value.replace(",",".") || "0") || 0;
+      const qtd = parseInt(document.getElementById("modalQtd").value,10) || 1;
+      criarItem(produtoSelecionadoModal, preco, qtd, null);
+      fecharModal();
+    }
+
+    function mascaraMoeda(elemento) {
+      let valor = elemento.value.replace(/\D/g, '');
+      if (valor === '') {
+        elemento.value = "";
+        return;
+      }
+      while(valor.length < 3) valor = '0' + valor;
+      const reais = valor.slice(0, valor.length-2);
+      const centavos = valor.slice(-2);
+      elemento.value = parseInt(reais).toString() + ',' + centavos;
+    }
+
+    function adicionarItem(){
+      const nome = document.getElementById("itemInput").value.trim();
+      const precoStr = document.getElementById("precoInput").value.trim().replace(",",".");
+      const preco = parseFloat(precoStr) || 0;
+      const qtd = parseInt(document.getElementById("quantidadeInput").value.trim());
+      const fotoInput = document.getElementById("fotoInput");
+      const erro = document.getElementById("mensagemErro");
+      erro.textContent = "";
+      if(nome === "" || isNaN(qtd) || qtd<1){
+        erro.textContent = "Preencha todos os campos corretamente.";
+        return;
+      }
+      if(fotoInput.files && fotoInput.files[0]){
+        const reader = new FileReader();
+        reader.onload = function(e){
+          criarItem(nome, preco, qtd, e.target.result);
+        }
+        reader.readAsDataURL(fotoInput.files[0]);
+      }else{
+        criarItem(nome, preco, qtd, null);
+      }
+    }
+
+    function criarItem(nome, preco, qtd, foto){
+      const lista = document.getElementById("listaCompras");
+      const li = document.createElement("li");
+      const fotoHTML = foto ? `<img src="${foto}" class="fotoProduto">` : "";
+      li.innerHTML = `
+        <input type="checkbox" onclick="marcarComprado(this)">
+        <span>${fotoHTML}${nome} - R$ 
+        <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
+        <div class="qtdControles">
+          <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
+          <span class="qtd">${qtd}</span>
+          <button class="iconBtn" onclick="alterarQtd(this,1)">➕</button>
+        </div>
+        <button class="iconBtn" onclick="removerItem(this)">🗑️</button>
+      `;
+      lista.appendChild(li);
+      atualizarTotal();
+      salvarLista();
+    }
+
+    function editarPrecoDireto(input){
+      const precoStr = input.value.trim().replace(",",".");
+      const preco = parseFloat(precoStr) || 0;
+      if(!isNaN(preco) && preco>=0){
+        atualizarTotal();
+        salvarLista();
+      }
+    }
+
+    function alterarQtd(btn, delta){
+      const spanQtd = btn.parentElement.querySelector(".qtd");
+      let qtd = parseInt(spanQtd.textContent,10)+delta;
+      if(qtd<1)qtd=1;
+      spanQtd.textContent = qtd;
+      atualizarTotal();
+      salvarLista();
+    }
+
+    function marcarComprado(cb){
+      const li=cb.parentElement;
+      li.classList.toggle("comprado",cb.checked);
+      salvarLista();
+    }
+
+    function removerItem(btn){
+      btn.parentElement.remove();
+      atualizarTotal();
+      salvarLista();
+    }
+
+    function atualizarTotal(){
+      let total=0;
+      document.querySelectorAll("#listaCompras li").forEach(li=>{
+        const precoStr = li.querySelector("span input").value.replace(",",".");
+        const preco = parseFloat(precoStr) || 0;
+        const qtd = parseInt(li.querySelector(".qtd").textContent,10);
+        total+=preco*qtd;
+      });
+      document.getElementById("total").textContent=total.toFixed(2).replace(".",",");
+    }
+
+    function salvarLista(){
+      const dados=[];
+      document.querySelectorAll("#listaCompras li").forEach(li=>{
+        const texto = li.querySelector("span").textContent.split(" - R$")[0];
+        const nome = texto.trim();
+        const precoStr = li.querySelector("span input").value.replace(",",".");
+        const preco = parseFloat(precoStr) || 0;
+        const qtd = parseInt(li.querySelector(".qtd").textContent,10);
+        const comprado = li.querySelector("input").checked;
+        const foto = li.querySelector('img') ? li.querySelector('img').src : null;
+        dados.push({nome,preco,qtd,comprado,foto});
+      });
+      localStorage.setItem("listaCompras",JSON.stringify(dados));
+    }
+
+    function carregarLista(){
+      const dados=JSON.parse(localStorage.getItem("listaCompras"));
+      if(!dados)return;
+      dados.forEach(item=>{
+        criarItem(item.nome,item.preco,item.qtd,item.foto);
+        const ultimo = document.querySelector("#listaCompras li:last-child input[type=checkbox]");
+        ultimo.checked = item.comprado;
+        if(item.comprado){
+          ultimo.parentElement.classList.add("comprado");
+        }
+      });
+    }
+    carregarLista();
+    document.getElementById("adicionarBtn").addEventListener("click", adicionarItem);
+
+    function filtrarCatalogo(){
+      const filtro = document.getElementById("campoPesquisa").value.toLowerCase();
+      document.querySelectorAll(".produtoCatalogo").forEach(el=>{
+        el.style.display = el.textContent.toLowerCase().includes(filtro) ? 'flex':'none';
+      });
+    }
+
+    const nomes = [
+      "Maçã","Banana","Laranja","Batata","Cenoura","Tomate","Alface","Couve","Espinafre",
+      "Carne Bovina","Frango","Peixe","Ovos","Arroz","Feijão","Macarrão","Farinha de trigo","Açúcar","Sal","Óleo","Café","Enlatados",
+      "Shampoo","Condicionador","Sabonete","Pasta de dente","Escova de dente","Absorventes","Desodorante",
+      "Detergente","Sabão em pó","Água sanitária","Amaciante","Desinfetante","Esponjas","Palha de aço",
+      "Água","Sucos","Refrigerantes","Cervejas","Sucos em pó","Congelados","Laticínios","Pães e frios","Biscoitos",
+      "Doces","Itens de papelaria","Descartáveis","Produtos para animais","Artigos para casa"
+    ];
+
+    const grid = document.getElementById("catalogoGrid");
+    nomes.forEach(nome=>{
+      const link = `https://source.unsplash.com/100x100/?${encodeURIComponent(nome)}`;
+      grid.innerHTML += `
+        <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
+          <img src="${link}" alt="${nome}">
+          <span>${nome}</span>
+        </div>`;
+    });
+
+  </script>
+</body>
+</html>
