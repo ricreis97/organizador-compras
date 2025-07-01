@@ -275,15 +275,14 @@
     ];
 
     const grid = document.getElementById("catalogoGrid");
-    nomes.forEach(nome=>{
-      const link = `https://source.unsplash.com/100x100/?${encodeURIComponent(nome)}`;
+    nomes.forEach(nome=>{ 
+      const link = `https://source.unsplash.com/100x100/?${encodeURIComponent(nome)}`; 
       grid.innerHTML += `
         <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
           <img src="${link}" alt="${nome}">
           <span>${nome}</span>
-        </div>`;
+        </div>`; 
     });
-
   </script>
 </body>
 </html>
