@@ -182,11 +182,12 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
 });
 
 function criarItem(nome, preco, qtd, foto){
+  const emoji = emojiMap[nome] || ""; // pega o emoji se existir
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
   li.innerHTML = `
     <input type="checkbox" onclick="marcarComprado(this)">
-    <span>${nome} - R$ 
+    <span>${emoji} ${nome} - R$ 
     <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
     <div class="qtdControles">
       <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
@@ -199,6 +200,7 @@ function criarItem(nome, preco, qtd, foto){
   atualizarTotal();
   salvarLista();
 }
+
 
 function editarPrecoDireto(input){
   const precoStr = input.value.trim().replace("R$", "").replace(",",".");
