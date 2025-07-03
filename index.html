@@ -10,14 +10,14 @@
     nav button { margin: 5px; font-size: 18px; padding: 5px 10px; border-radius: 25px; }
     h1 { text-align: center; }
     input, button { padding: 5px; font-size: 14px; border-radius: 12px; }
-    input[type="text"], input[type="number"] { 
-      width: 50%; 
-      margin: 8px auto; 
-      display: block;
-      text-align: center; 
-      border-radius: 12px;
-      box-sizing: border-box;
-    }
+  input[type="text"], input[type="number"] { 
+  width: 50%; 
+  margin: 8px auto; 
+  display: block;
+  text-align: center; 
+  border-radius: 12px;
+  box-sizing: border-box;
+}
 
     .containerForm {
       max-width: 500px;
@@ -118,8 +118,8 @@
 let produtoSelecionadoModal = "";
 
 function abrirAba(qual) {
-  document.getElementById("abaInicio").style.display = qual === 'inicio' ? 'block' : 'none';
-  document.getElementById("abaCatalogo").style.display = qual === 'catalogo' ? 'block' : 'none';
+  document.getElementById("abaInicio").style.display = qual==='inicio' ? 'block':'none';
+  document.getElementById("abaCatalogo").style.display = qual==='catalogo' ? 'block':'none';
 }
 
 function abrirModal(produto){
@@ -153,6 +153,7 @@ function mascaraMoeda(elemento) {
   elemento.value = "R$ " + parseInt(reais).toString() + ',' + centavos;
 }
 
+
 function adicionarItem(){
   const nome = document.getElementById("itemInput").value.trim();
   const precoStr = document.getElementById("precoInput").value.trim().replace("R$", "").replace(",",".");
@@ -161,10 +162,11 @@ function adicionarItem(){
   const qtd = parseInt(qtdInput.value.trim());
   const erro = document.getElementById("mensagemErro");
   erro.textContent = "";
-  if(nome === "" || isNaN(qtd) || qtd < 1){
+  if(nome === "" || isNaN(qtd) || qtd<1){
     erro.textContent = "Preencha todos os campos corretamente.";
     return;
   }
+
   criarItem(nome, preco, qtd, null);
   document.getElementById("itemInput").value = "";
   document.getElementById("precoInput").value = "";
@@ -180,21 +182,19 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
 });
 
 function criarItem(nome, preco, qtd, foto){
-  const nomeNormalizado = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const emoji = emojiMapNormalizado[nomeNormalizado] || "";
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
-  li.innerHTML = `
+  li.innerHTML = 
     <input type="checkbox" onclick="marcarComprado(this)">
-    <span>${emoji} ${nome} - R$ 
-    <input type="text" value="${preco > 0 ? preco.toFixed(2).replace(".",",") : ""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
+    <span>${nome} - R$ 
+    <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
     <div class="qtdControles">
       <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
       <span class="qtd">${qtd}</span>
       <button class="iconBtn" onclick="alterarQtd(this,1)">➕</button>
     </div>
     <button class="iconBtn" onclick="removerItem(this)">🗑️</button>
-  `;
+  ;
   lista.appendChild(li);
   atualizarTotal();
   salvarLista();
@@ -203,7 +203,7 @@ function criarItem(nome, preco, qtd, foto){
 function editarPrecoDireto(input){
   const precoStr = input.value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
-  if(!isNaN(preco) && preco >= 0){
+  if(!isNaN(preco) && preco>=0){
     atualizarTotal();
     salvarLista();
   }
@@ -211,16 +211,16 @@ function editarPrecoDireto(input){
 
 function alterarQtd(btn, delta){
   const spanQtd = btn.parentElement.querySelector(".qtd");
-  let qtd = parseInt(spanQtd.textContent,10) + delta;
-  if(qtd < 1) qtd = 1;
+  let qtd = parseInt(spanQtd.textContent,10)+delta;
+  if(qtd<1)qtd=1;
   spanQtd.textContent = qtd;
   atualizarTotal();
   salvarLista();
 }
 
 function marcarComprado(cb){
-  const li = cb.parentElement;
-  li.classList.toggle("comprado", cb.checked);
+  const li=cb.parentElement;
+  li.classList.toggle("comprado",cb.checked);
   salvarLista();
 }
 
@@ -231,45 +231,45 @@ function removerItem(btn){
 }
 
 function atualizarTotal(){
-  let total = 0;
-  document.querySelectorAll("#listaCompras li").forEach(li => {
+  let total=0;
+  document.querySelectorAll("#listaCompras li").forEach(li=>{
     const precoStr = li.querySelector("span input").value.replace(",",".");
     const preco = parseFloat(precoStr) || 0;
-    const qtd = parseInt(li.querySelector(".qtd").textContent, 10);
-    total += preco * qtd;
+    const qtd = parseInt(li.querySelector(".qtd").textContent,10);
+    total+=preco*qtd;
   });
-  document.getElementById("total").textContent = total.toFixed(2).replace(".",",");
+  document.getElementById("total").textContent=total.toFixed(2).replace(".",",");
 }
 
 function salvarLista(){
-  const dados = [];
-  document.querySelectorAll("#listaCompras li").forEach(li => {
+  const dados=[];
+  document.querySelectorAll("#listaCompras li").forEach(li=>{
     const texto = li.querySelector("span").textContent.split(" - R$")[0];
     const nome = texto.trim();
-    const precoStr = li.querySelector("span input").value.replace(",", ".");
+    const precoStr = li.querySelector("span input").value.replace(",",".");
     const preco = parseFloat(precoStr) || 0;
-    const qtd = parseInt(li.querySelector(".qtd").textContent, 10);
+    const qtd = parseInt(li.querySelector(".qtd").textContent,10);
     const comprado = li.querySelector("input").checked;
-    dados.push({nome, preco, qtd, comprado, foto: null});
+    const foto = null;
+    dados.push({nome,preco,qtd,comprado,foto});
   });
-  localStorage.setItem("listaCompras", JSON.stringify(dados));
+  localStorage.setItem("listaCompras",JSON.stringify(dados));
 }
 
 function carregarLista(){
-  const dados = JSON.parse(localStorage.getItem("listaCompras"));
-  if (!dados) return;
-  dados.forEach(item => {
-    criarItem(item.nome, item.preco, item.qtd, item.foto);
+  const dados=JSON.parse(localStorage.getItem("listaCompras"));
+  if(!dados)return;
+  dados.forEach(item=>{
+    criarItem(item.nome,item.preco,item.qtd,item.foto);
     const ultimo = document.querySelector("#listaCompras li:last-child input[type=checkbox]");
     ultimo.checked = item.comprado;
-    if (item.comprado) {
+    if(item.comprado){
       ultimo.parentElement.classList.add("comprado");
     }
   });
 }
 carregarLista();
-
-document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
+  document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
   input.addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -277,16 +277,17 @@ document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((
         inputs[index + 1].focus();
       } else {
         adicionarItem();
-        inputs[0].focus();
+        inputs[0].focus(); // volta para o primeiro campo após adicionar
       }
     }
   });
 });
 
+
 function filtrarCatalogo(){
   const filtro = document.getElementById("campoPesquisa").value.toLowerCase();
-  document.querySelectorAll(".produtoCatalogo").forEach(el => {
-    el.style.display = el.textContent.toLowerCase().includes(filtro) ? 'flex' : 'none';
+  document.querySelectorAll(".produtoCatalogo").forEach(el=>{
+    el.style.display = el.textContent.toLowerCase().includes(filtro) ? 'flex':'none';
   });
 }
 
@@ -311,21 +312,14 @@ const emojiMap = {
   "Descartáveis":"🥡","Para animais":"🐶","Para casa":"🏠"
 };
 
-// Mapa normalizado para busca sem acentos/minúsculo
-const emojiMapNormalizado = {};
-for (const chave in emojiMap) {
-  const chaveNormalizada = chave.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  emojiMapNormalizado[chaveNormalizada] = emojiMap[chave];
-}
-
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
   const emoji = emojiMap[nome] || "📦";
-  grid.innerHTML += `
+  grid.innerHTML += 
     <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
       <div style="font-size:24px;">${emoji}</div>
       <span>${nome}</span>
-    </div>`;
+    </div>;
 });
 </script>
 </body>
