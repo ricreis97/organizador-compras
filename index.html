@@ -284,12 +284,26 @@ const nomes = [
   "Doces","Itens de papelaria","Descartáveis","Produtos para animais","Artigos para casa"
 ];
 
+const emojiMap = {
+  "Maçã":"🍎","Banana":"🍌","Laranja":"🍊","Batata":"🥔","Cenoura":"🥕","Tomate":"🍅",
+  "Alface":"🥬","Couve":"🥦","Espinafre":"🌿","Carne Bovina":"🥩","Frango":"🍗","Peixe":"🐟",
+  "Ovos":"🥚","Arroz":"🍚","Feijão":"🫘","Macarrão":"🍝","Farinha de trigo":"🌾",
+  "Açúcar":"🧂","Sal":"🧂","Óleo":"🛢️","Café":"☕","Enlatados":"🥫",
+  "Shampoo":"🧴","Condicionador":"🧴","Sabonete":"🧼","Pasta de dente":"🪥",
+  "Escova de dente":"🪥","Absorventes":"🩸","Desodorante":"🧴","Detergente":"🧽",
+  "Sabão em pó":"🧼","Água sanitária":"🧪","Amaciante":"🧴","Desinfetante":"🧴",
+  "Esponjas":"🧽","Palha de aço":"🧲","Água":"💧","Sucos":"🧃","Refrigerantes":"🥤",
+  "Cervejas":"🍺","Sucos em pó":"🍹","Congelados":"🧊","Laticínios":"🧀",
+  "Pães e frios":"🥖","Biscoitos":"🍪","Doces":"🍬","Itens de papelaria":"✏️",
+  "Descartáveis":"🥡","Produtos para animais":"🐶","Artigos para casa":"🏠"
+};
+
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
-  const link = `https://source.unsplash.com/100x100/?${encodeURIComponent(nome)}`;
+  const emoji = emojiMap[nome] || "📦";
   grid.innerHTML += `
     <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
-      <img src="${link}" alt="${nome}">
+      <div style="font-size:24px;">${emoji}</div>
       <span>${nome}</span>
     </div>`;
 });
