@@ -71,7 +71,7 @@
   </style>
 </head>
 <body>
-  <h1>Organizador de Compras</h1>
+  <h1>Sua Lista de Compras</h1>
   <nav>
     <button onclick="abrirAba('inicio')">🏠 Início</button>
     <button onclick="abrirAba('catalogo')">🛒 Catálogo</button>
@@ -82,7 +82,7 @@
     <div class="containerForm">
       <h2>Adicione um item</h2>
       <input type="text" id="itemInput" placeholder="Digite o nome do item">
-      <input type="text" id="precoInput" placeholder="Preço" oninput="mascaraMoeda(this)">
+      <input type="text" id="precoInput" placeholder="Valor(R$)" oninput="mascaraMoeda(this)">
       <input type="number" id="quantidadeInput" placeholder="Quantidade" step="1" min="1">
       <p id="mensagemErro" class="erro"></p>
     </div>
