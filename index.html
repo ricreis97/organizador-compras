@@ -182,7 +182,19 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
 });
 
 function criarItem(nome, preco, qtd, foto){
-  const emoji = emojiMap[nome] || ""; // pega o emoji se existir
+  // normaliza o nome para minúsculo e sem acentos
+  const nomeNormalizado = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  
+  // procura no emojiMap por chave equivalente
+  let emoji = "";
+  for (const chave in emojiMap) {
+    const chaveNormalizada = chave.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (chaveNormalizada === nomeNormalizado) {
+      emoji = emojiMap[chave];
+      break;
+    }
+  }
+
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
   li.innerHTML = `
@@ -200,6 +212,7 @@ function criarItem(nome, preco, qtd, foto){
   atualizarTotal();
   salvarLista();
 }
+
 
 
 function editarPrecoDireto(input){
