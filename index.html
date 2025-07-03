@@ -132,7 +132,6 @@ function fecharModal(){
   document.getElementById("modal").style.display = "none";
 }
 
-// ALTERAÇÃO AQUI:
 function confirmarModal(){
   let precoStr = document.getElementById("modalPreco").value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
@@ -140,7 +139,6 @@ function confirmarModal(){
   criarItem(produtoSelecionadoModal, preco, qtd, null);
   fecharModal();
 }
-// FIM ALTERAÇÃO
 
 function mascaraMoeda(elemento) {
   let valor = elemento.value.replace(/\D/g, '');
@@ -181,12 +179,14 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
   }
 });
 
+// ALTERAÇÃO AQUI:
 function criarItem(nome, preco, qtd, foto){
+  const emoji = emojiMap[nome] || "📦";
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
   li.innerHTML = `
     <input type="checkbox" onclick="marcarComprado(this)">
-    <span>${nome} - 
+    <span>${emoji} ${nome} - 
     <input type="text" value="R$ ${preco.toFixed(2).replace(".",",")}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
     <div class="qtdControles">
       <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
@@ -199,8 +199,8 @@ function criarItem(nome, preco, qtd, foto){
   atualizarTotal();
   salvarLista();
 }
+// FIM ALTERAÇÃO
 
-// ALTERAÇÃO AQUI:
 function editarPrecoDireto(input){
   let precoStr = input.value.trim().replace("R$", "").replace(",",".");
   let preco = parseFloat(precoStr);
@@ -209,7 +209,6 @@ function editarPrecoDireto(input){
   atualizarTotal();
   salvarLista();
 }
-// FIM ALTERAÇÃO
 
 function alterarQtd(btn, delta){
   const spanQtd = btn.parentElement.querySelector(".qtd");
@@ -246,8 +245,8 @@ function atualizarTotal(){
 function salvarLista(){
   const dados=[];
   document.querySelectorAll("#listaCompras li").forEach(li=>{
-    const texto = li.querySelector("span").textContent.split(" -")[0];
-    const nome = texto.trim();
+    const texto = li.querySelector("span").textContent.split(" -")[0].trim();
+    const nome = texto.replace(/^[^\s]+\s/, ""); // remove emoji
     const precoStr = li.querySelector("span input").value.replace("R$","").replace(",",".");
     const preco = parseFloat(precoStr) || 0;
     const qtd = parseInt(li.querySelector(".qtd").textContent,10);
