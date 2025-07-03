@@ -19,17 +19,6 @@
   box-sizing: border-box;
 }
 
-
-#precoInput {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='0' y='15' font-size='16'%3ER$%3C/text%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 5px center;
-  padding-left: 30px;
-  text-align: right;
-}
-
-
-
     .containerForm {
       max-width: 500px;
       margin: 0 auto;
@@ -158,15 +147,16 @@ function mascaraMoeda(elemento) {
     elemento.value = "";
     return;
   }
-  while(valor.length < 3) valor = '0' + valor;
-  const reais = valor.slice(0, valor.length-2);
+  while (valor.length < 3) valor = '0' + valor;
+  const reais = valor.slice(0, valor.length - 2);
   const centavos = valor.slice(-2);
-  elemento.value = parseInt(reais).toString() + ',' + centavos;
+  elemento.value = "R$ " + parseInt(reais).toString() + ',' + centavos;
 }
+
 
 function adicionarItem(){
   const nome = document.getElementById("itemInput").value.trim();
-  const precoStr = document.getElementById("precoInput").value.trim().replace(",",".");
+  const precoStr = document.getElementById("precoInput").value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
   const qtdInput = document.getElementById("quantidadeInput");
   const qtd = parseInt(qtdInput.value.trim());
@@ -211,7 +201,7 @@ function criarItem(nome, preco, qtd, foto){
 }
 
 function editarPrecoDireto(input){
-  const precoStr = input.value.trim().replace(",",".");
+  const precoStr = input.value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
   if(!isNaN(preco) && preco>=0){
     atualizarTotal();
