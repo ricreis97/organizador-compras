@@ -10,23 +10,26 @@
     nav button { margin: 5px; font-size: 18px; padding: 5px 10px; border-radius: 25px; }
     h1 { text-align: center; }
     input, button { padding: 5px; font-size: 14px; border-radius: 12px; }
-    input[type="text"], input[type="number"] { 
-      width: 50%; 
-      margin: 8px auto; 
-      display: block;
-      text-align: center; 
-      border-radius: 12px;
-      box-sizing: border-box;
-    }
+  input[type="text"], input[type="number"] { 
+  width: 50%; 
+  margin: 8px auto; 
+  display: block;
+  text-align: center; 
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
     .containerForm {
       max-width: 500px;
       margin: 0 auto;
       padding: 10px;
     }
+
     #listaCompras, #itensSugeridos { list-style-type: none; padding: 0; }
     li { margin: 15px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
     .comprado { text-decoration: line-through; color: green; }
     .erro { color: red; font-size: 14px; margin-top: 5px; }
+    .fotoProduto { width: 50px; height: 50px; object-fit: cover; margin-right:5px; border-radius:4px; }
     .qtdControles button { margin: 0 2px; font-size: 14px; border-radius: 10px; }
     .iconBtn { background:none; border:none; cursor:pointer; font-size:16px; margin: 0 4px; }
     #catalogoGrid { 
@@ -64,6 +67,7 @@
       text-align: center;
       z-index: 999;
     }
+    .produtoCatalogo img { width: 100%; height: 100%; object-fit: cover; border-radius:5px; }
   </style>
 </head>
 <body>
@@ -149,20 +153,25 @@ function mascaraMoeda(elemento) {
   elemento.value = "R$ " + parseInt(reais).toString() + ',' + centavos;
 }
 
+
 function adicionarItem(){
   const nome = document.getElementById("itemInput").value.trim();
-  const precoStr = document.getElementById("precoInput").value.trim().replace("R$", "").replace(",","."), preco = parseFloat(precoStr) || 0;
-  const qtd = parseInt(document.getElementById("quantidadeInput").value.trim());
+  const precoStr = document.getElementById("precoInput").value.trim().replace("R$", "").replace(",",".");
+  const preco = parseFloat(precoStr) || 0;
+  const qtdInput = document.getElementById("quantidadeInput");
+  const qtd = parseInt(qtdInput.value.trim());
   const erro = document.getElementById("mensagemErro");
   erro.textContent = "";
   if(nome === "" || isNaN(qtd) || qtd<1){
     erro.textContent = "Preencha todos os campos corretamente.";
     return;
   }
+
   criarItem(nome, preco, qtd, null);
   document.getElementById("itemInput").value = "";
   document.getElementById("precoInput").value = "";
-  document.getElementById("quantidadeInput").value = "";
+  qtdInput.value = "";
+  qtdInput.blur(); // Fecha teclado no celular
 }
 
 document.getElementById("quantidadeInput").addEventListener("keypress", function(e){
@@ -172,27 +181,15 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
   }
 });
 
-const emojiMap = {
-  "Maçã":"🍎","Banana":"🍌","Laranja":"🍊","Batata":"🥔","Cenoura":"🥕","Tomate":"🍅",
-  "Alface":"🥬","Couve":"🥦","Espinafre":"🌿","Carne Bovina":"🥩","Frango":"🍗","Peixe":"🐟",
-  "Ovos":"🥚","Arroz":"🍚","Feijão":"🫘","Macarrão":"🍝","Farinha de trigo":"🌾",
-  "Açúcar":"🧂","Sal":"🧂","Óleo":"🛢️","Café":"☕","Enlatados":"🥫","Shampoo":"🧴",
-  "Condicionador":"🧴","Sabonete":"🧼","Pasta de dente":"🪥","Absorventes":"🩸","Desodorante":"🧴",
-  "Detergente":"🧽","Sabão em pó":"🧼","Água sanitária":"🧪","Amaciante":"🧴","Desinfetante":"🧴",
-  "Esponjas":"🧽","Água":"💧","Sucos":"🧃","Refrigerantes":"🥤","Cervejas":"🍺",
-  "Sucos em pó":"🍹","Congelados":"🧊","Laticínios":"🧀","Pães e frios":"🥖","Biscoitos":"🍪",
-  "Doces":"🍬","Itens de papelaria":"✏️","Descartáveis":"🥡","Para animais":"🐶","Para casa":"🏠"
-};
-
-// APENAS ESTA FUNÇÃO FOI MODIFICADA
 function criarItem(nome, preco, qtd, foto){
-  const emoji = emojiMap[nome] || "";
+  const emoji = emojiMap[nome] || "";  // usa emoji se existir
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
   li.innerHTML = `
     <input type="checkbox" onclick="marcarComprado(this)">
     <span>${emoji} ${nome} - R$ 
-    <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
+      <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)">
+    </span>
     <div class="qtdControles">
       <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
       <span class="qtd">${qtd}</span>
@@ -204,14 +201,16 @@ function criarItem(nome, preco, qtd, foto){
   atualizarTotal();
   salvarLista();
 }
-// FIM DA ALTERAÇÃO
 
-// (restante do código continua igual)
 function editarPrecoDireto(input){
-  const precoStr = input.value.trim().replace("R$", "").replace(",","."), preco = parseFloat(precoStr) || 0;
-  atualizarTotal();
-  salvarLista();
+  const precoStr = input.value.trim().replace("R$", "").replace(",",".");
+  const preco = parseFloat(precoStr) || 0;
+  if(!isNaN(preco) && preco>=0){
+    atualizarTotal();
+    salvarLista();
+  }
 }
+
 function alterarQtd(btn, delta){
   const spanQtd = btn.parentElement.querySelector(".qtd");
   let qtd = parseInt(spanQtd.textContent,10)+delta;
@@ -220,15 +219,19 @@ function alterarQtd(btn, delta){
   atualizarTotal();
   salvarLista();
 }
+
 function marcarComprado(cb){
-  cb.parentElement.classList.toggle("comprado", cb.checked);
+  const li=cb.parentElement;
+  li.classList.toggle("comprado",cb.checked);
   salvarLista();
 }
+
 function removerItem(btn){
   btn.parentElement.remove();
   atualizarTotal();
   salvarLista();
 }
+
 function atualizarTotal(){
   let total=0;
   document.querySelectorAll("#listaCompras li").forEach(li=>{
@@ -239,41 +242,86 @@ function atualizarTotal(){
   });
   document.getElementById("total").textContent=total.toFixed(2).replace(".",",");
 }
+
 function salvarLista(){
   const dados=[];
   document.querySelectorAll("#listaCompras li").forEach(li=>{
-    const texto = li.querySelector("span").textContent.split(" -")[0].trim();
-    const nome = texto.replace(/^.. /,"");  // remove emoji
+    const texto = li.querySelector("span").textContent.split(" - R$")[0];
+    const nome = texto.trim();
     const precoStr = li.querySelector("span input").value.replace(",",".");
     const preco = parseFloat(precoStr) || 0;
     const qtd = parseInt(li.querySelector(".qtd").textContent,10);
-    dados.push({nome,preco,qtd});
+    const comprado = li.querySelector("input").checked;
+    const foto = null;
+    dados.push({nome,preco,qtd,comprado,foto});
   });
   localStorage.setItem("listaCompras",JSON.stringify(dados));
 }
+
 function carregarLista(){
   const dados=JSON.parse(localStorage.getItem("listaCompras"));
   if(!dados)return;
   dados.forEach(item=>{
-    criarItem(item.nome,item.preco,item.qtd,null);
+    criarItem(item.nome,item.preco,item.qtd,item.foto);
+    const ultimo = document.querySelector("#listaCompras li:last-child input[type=checkbox]");
+    ultimo.checked = item.comprado;
+    if(item.comprado){
+      ultimo.parentElement.classList.add("comprado");
+    }
   });
 }
 carregarLista();
+  document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      } else {
+        adicionarItem();
+        inputs[0].focus(); // volta para o primeiro campo após adicionar
+      }
+    }
+  });
+});
+
+
 function filtrarCatalogo(){
   const filtro = document.getElementById("campoPesquisa").value.toLowerCase();
   document.querySelectorAll(".produtoCatalogo").forEach(el=>{
     el.style.display = el.textContent.toLowerCase().includes(filtro) ? 'flex':'none';
   });
 }
-const nomes = Object.keys(emojiMap);
+
+const nomes = [
+  "Maçã","Banana","Laranja","Batata","Cenoura","Tomate","Alface","Couve","Espinafre",
+  "Carne Bovina","Frango","Peixe","Ovos","Arroz","Feijão","Macarrão","Farinha de trigo","Açúcar","Sal","Óleo","Café","Enlatados",
+  "Shampoo","Condicionador","Sabonete","Pasta de dente","Absorventes","Desodorante",
+  "Detergente","Sabão em pó","Água sanitária","Amaciante","Desinfetante","Esponjas","Água","Sucos","Refrigerantes","Cervejas","Sucos em pó","Congelados","Laticínios","Pães e frios","Biscoitos",
+  "Doces","Itens de papelaria","Descartáveis","Para animais","Para casa"
+];
+
+const emojiMap = {
+  "Maçã":"🍎","Banana":"🍌","Laranja":"🍊","Batata":"🥔","Cenoura":"🥕","Tomate":"🍅",
+  "Alface":"🥬","Couve":"🥦","Espinafre":"🌿","Carne Bovina":"🥩","Frango":"🍗","Peixe":"🐟",
+  "Ovos":"🥚","Arroz":"🍚","Feijão":"🫘","Macarrão":"🍝","Farinha de trigo":"🌾",
+  "Açúcar":"🧂","Sal":"🧂","Óleo":"🛢️","Café":"☕","Enlatados":"🥫",
+  "Shampoo":"🧴","Condicionador":"🧴","Sabonete":"🧼","Pasta de dente":"🪥","Absorventes":"🩸","Desodorante":"🧴","Detergente":"🧽",
+  "Sabão em pó":"🧼","Água sanitária":"🧪","Amaciante":"🧴","Desinfetante":"🧴",
+  "Esponjas":"🧽","Água":"💧","Sucos":"🧃","Refrigerantes":"🥤",
+  "Cervejas":"🍺","Sucos em pó":"🍹","Congelados":"🧊","Laticínios":"🧀",
+  "Pães e frios":"🥖","Biscoitos":"🍪","Doces":"🍬","Itens de papelaria":"✏️",
+  "Descartáveis":"🥡","Para animais":"🐶","Para casa":"🏠"
+};
+
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
   const emoji = emojiMap[nome] || "📦";
-  grid.innerHTML += `
+  grid.innerHTML += 
     <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
       <div style="font-size:24px;">${emoji}</div>
       <span>${nome}</span>
-    </div>`;
+    </div>;
 });
 </script>
 </body>
