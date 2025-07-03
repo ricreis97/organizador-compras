@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Organizador de Compras</title>
+  <title>Sua Lista de Compras</title>
   <style>
     body { font-family: Arial, sans-serif; margin-bottom:60px; }
     nav { text-align: center; margin-bottom: 20px; }
@@ -11,7 +11,7 @@
     h1 { text-align: center; }
     input, button { padding: 5px; font-size: 14px; border-radius: 12px; }
   input[type="text"], input[type="number"] { 
-  width: 30%; 
+  width: 50%; 
   margin: 8px auto; 
   display: block;
   text-align: center; 
@@ -93,7 +93,7 @@
     <div class="containerForm">
       <h2>Adicione um item</h2>
       <input type="text" id="itemInput" placeholder="Digite o nome do item">
-      <input type="text" id="precoInput" placeholder="Preço (R$)" oninput="mascaraMoeda(this)">
+      <input type="text" id="precoInput" placeholder="Preço" oninput="mascaraMoeda(this)">
       <input type="number" id="quantidadeInput" placeholder="Quantidade" step="1" min="1">
       <p id="mensagemErro" class="erro"></p>
     </div>
