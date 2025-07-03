@@ -184,7 +184,7 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
 function criarItem(nome, preco, qtd, foto){
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
-  li.innerHTML = 
+  li.innerHTML = `
     <input type="checkbox" onclick="marcarComprado(this)">
     <span>${nome} - R$ 
     <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
@@ -194,7 +194,7 @@ function criarItem(nome, preco, qtd, foto){
       <button class="iconBtn" onclick="alterarQtd(this,1)">➕</button>
     </div>
     <button class="iconBtn" onclick="removerItem(this)">🗑️</button>
-  ;
+  `;
   lista.appendChild(li);
   atualizarTotal();
   salvarLista();
@@ -315,11 +315,11 @@ const emojiMap = {
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
   const emoji = emojiMap[nome] || "📦";
-  grid.innerHTML += 
+  grid.innerHTML += `
     <div class="produtoCatalogo" onclick="abrirModal('${nome}')">
       <div style="font-size:24px;">${emoji}</div>
       <span>${nome}</span>
-    </div>;
+    </div>`;
 });
 </script>
 </body>
