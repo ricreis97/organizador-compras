@@ -182,18 +182,26 @@ document.getElementById("quantidadeInput").addEventListener("keypress", function
 });
 
 function criarItem(nome, preco, qtd, foto){
-  // normaliza o nome para minúsculo e sem acentos
   const nomeNormalizado = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  
-  // procura no emojiMap por chave equivalente
-  let emoji = "";
-  for (const chave in emojiMap) {
-    const chaveNormalizada = chave.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    if (chaveNormalizada === nomeNormalizado) {
-      emoji = emojiMap[chave];
-      break;
-    }
-  }
+  const emoji = emojiMapNormalizado[nomeNormalizado] || "";
+  const lista = document.getElementById("listaCompras");
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <input type="checkbox" onclick="marcarComprado(this)">
+    <span>${emoji} ${nome} - R$ 
+    <input type="text" value="${preco>0?preco.toFixed(2).replace(".",","):""}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
+    <div class="qtdControles">
+      <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
+      <span class="qtd">${qtd}</span>
+      <button class="iconBtn" onclick="alterarQtd(this,1)">➕</button>
+    </div>
+    <button class="iconBtn" onclick="removerItem(this)">🗑️</button>
+  `;
+  lista.appendChild(li);
+  atualizarTotal();
+  salvarLista();
+}
+
 
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
@@ -326,6 +334,13 @@ const emojiMap = {
   "Pães e frios":"🥖","Biscoitos":"🍪","Doces":"🍬","Itens de papelaria":"✏️",
   "Descartáveis":"🥡","Para animais":"🐶","Para casa":"🏠"
 };
+
+  // mapa normalizado para busca sem acentos/minúsculo
+const emojiMapNormalizado = {};
+for (const chave in emojiMap) {
+  const chaveNormalizada = chave.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  emojiMapNormalizado[chaveNormalizada] = emojiMap[chave];
+}
 
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
