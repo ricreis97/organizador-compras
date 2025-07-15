@@ -132,7 +132,6 @@ function fecharModal(){
   document.getElementById("modal").style.display = "none";
 }
 
-// ALTERAÇÃO AQUI:
 function confirmarModal(){
   let precoStr = document.getElementById("modalPreco").value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
@@ -140,7 +139,6 @@ function confirmarModal(){
   criarItem(produtoSelecionadoModal, preco, qtd, null);
   fecharModal();
 }
-// FIM ALTERAÇÃO
 
 function mascaraMoeda(elemento) {
   let valor = elemento.value.replace(/\D/g, '');
@@ -174,7 +172,8 @@ function adicionarItem(){
   qtdInput.blur();
 }
 
-document.getElementById("quantidadeInput").addEventListener("keypress", function(e){
+// 🔧 ALTERADO AQUI: usar keydown para capturar Enter em mobile também
+document.getElementById("quantidadeInput").addEventListener("keydown", function(e){
   if(e.key === "Enter"){
     e.preventDefault();
     adicionarItem();
@@ -200,7 +199,6 @@ function criarItem(nome, preco, qtd, foto){
   salvarLista();
 }
 
-// ALTERAÇÃO AQUI:
 function editarPrecoDireto(input){
   let precoStr = input.value.trim().replace("R$", "").replace(",",".");
   let preco = parseFloat(precoStr);
@@ -209,7 +207,6 @@ function editarPrecoDireto(input){
   atualizarTotal();
   salvarLista();
 }
-// FIM ALTERAÇÃO
 
 function alterarQtd(btn, delta){
   const spanQtd = btn.parentElement.querySelector(".qtd");
