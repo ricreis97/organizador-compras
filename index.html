@@ -98,7 +98,6 @@
     <div id="modalContent">
       <h3 id="modalTitulo"></h3>
       <p>Preço (R$): <input type="text" id="modalPreco" oninput="mascaraMoeda(this)"></p>
-      <!-- 🔧 quantidade sem valor pré-definido -->
       <p>Quantidade: <input type="number" id="modalQtd" min="1"></p>
       <button onclick="confirmarModal()">✅ Confirmar</button>
       <button onclick="fecharModal()">❌ Cancelar</button>
@@ -121,7 +120,7 @@ function abrirModal(produto){
   produtoSelecionadoModal = produto;
   document.getElementById("modalTitulo").textContent = produto;
   document.getElementById("modalPreco").value = "";
-  document.getElementById("modalQtd").value = ""; // 🔧 agora vazio
+  document.getElementById("modalQtd").value = "";
   document.getElementById("modal").style.display = "flex";
 }
 
@@ -167,6 +166,11 @@ function adicionarItem(){
   document.getElementById("precoInput").value = "";
   qtdInput.value = "";
   qtdInput.blur();
+
+  // ✅ devolve o foco com leve atraso para não "pular"
+  setTimeout(() => {
+    document.getElementById("itemInput").focus();
+  }, 100);
 }
 
 function criarItem(nome, preco, qtd, foto){
@@ -266,7 +270,6 @@ document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((
           inputs[index + 1].focus();
         } else {
           adicionarItem();
-          inputs[0].focus();
         }
       }
     });
