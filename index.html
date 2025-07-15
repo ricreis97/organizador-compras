@@ -173,13 +173,14 @@ function adicionarItem(){
   }, 100);
 }
 
-function criarItem(nome, preco, qtd, foto){
+<!-- DENTRO DA FUNÇÃO criarItem -->
+function criarItem(nome, preco, qtd){
   const lista = document.getElementById("listaCompras");
   const li = document.createElement("li");
   li.innerHTML = `
     <input type="checkbox" onclick="marcarComprado(this)">
     <span>${nome} - 
-    <input type="text" value="R$ ${preco.toFixed(2).replace(".",",")}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
+    <input type="text" tabindex="-1" value="R$ ${preco.toFixed(2).replace(".",",")}" oninput="mascaraMoeda(this);editarPrecoDireto(this)"></span>
     <div class="qtdControles">
       <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
       <span class="qtd">${qtd}</span>
@@ -191,6 +192,7 @@ function criarItem(nome, preco, qtd, foto){
   atualizarTotal();
   salvarLista();
 }
+
 
 function editarPrecoDireto(input){
   let precoStr = input.value.trim().replace("R$", "").replace(",",".");
