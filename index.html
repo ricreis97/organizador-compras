@@ -75,13 +75,12 @@
     <button onclick="abrirAba('catalogo')">🛒 Catálogo</button>
   </nav>
 
-  <!-- INICIO -->
   <div id="abaInicio">
     <div class="containerForm">
       <h2>Adicione um item</h2>
       <input type="text" id="itemInput" placeholder="Digite o nome do item">
       <input type="text" id="precoInput" placeholder="Valor(R$)" oninput="mascaraMoeda(this)">
-      <input type="number" id="quantidadeInput" placeholder="Quantidade" step="" min="">
+      <input type="number" id="quantidadeInput" placeholder="Quantidade" step="1" min="1">
       <p id="mensagemErro" class="erro"></p>
     </div>
 
@@ -89,25 +88,23 @@
     <ul id="listaCompras"></ul>
   </div>
 
-  <!-- CATALOGO -->
   <div id="abaCatalogo" style="display:none;">
     <h2>Catálogo de Produtos</h2>
     <input type="text" id="campoPesquisa" placeholder="Pesquisar produto..." onkeyup="filtrarCatalogo()">
     <div id="catalogoGrid"></div>
   </div>
 
-  <!-- MODAL -->
   <div id="modal">
     <div id="modalContent">
       <h3 id="modalTitulo"></h3>
       <p>Preço (R$): <input type="text" id="modalPreco" oninput="mascaraMoeda(this)"></p>
-      <p>Quantidade: <input type="number" id="modalQtd" min="1" value="1"></p>
+      <!-- 🔧 quantidade sem valor pré-definido -->
+      <p>Quantidade: <input type="number" id="modalQtd" min="1"></p>
       <button onclick="confirmarModal()">✅ Confirmar</button>
       <button onclick="fecharModal()">❌ Cancelar</button>
     </div>
   </div>
 
-  <!-- TOTAL FIXO -->
   <div class="total">
     <p>Total Estimado: R$ <span id="total">0,00</span></p>
   </div>
@@ -124,7 +121,7 @@ function abrirModal(produto){
   produtoSelecionadoModal = produto;
   document.getElementById("modalTitulo").textContent = produto;
   document.getElementById("modalPreco").value = "";
-  document.getElementById("modalQtd").value = 1;
+  document.getElementById("modalQtd").value = ""; // 🔧 agora vazio
   document.getElementById("modal").style.display = "flex";
 }
 
@@ -171,14 +168,6 @@ function adicionarItem(){
   qtdInput.value = "";
   qtdInput.blur();
 }
-
-// 🔧 ALTERADO AQUI: usar keydown para capturar Enter em mobile também
-document.getElementById("quantidadeInput").addEventListener("keydown", function(e){
-  if(e.key === "Enter"){
-    e.preventDefault();
-    adicionarItem();
-  }
-});
 
 function criarItem(nome, preco, qtd, foto){
   const lista = document.getElementById("listaCompras");
@@ -269,16 +258,18 @@ function carregarLista(){
 carregarLista();
 
 document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
-  input.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (index < inputs.length - 1) {
-        inputs[index + 1].focus();
-      } else {
-        adicionarItem();
-        inputs[0].focus();
+  ["keydown","keyup"].forEach(evName=>{
+    input.addEventListener(evName, function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        } else {
+          adicionarItem();
+          inputs[0].focus();
+        }
       }
-    }
+    });
   });
 });
 
