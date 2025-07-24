@@ -9,7 +9,7 @@
     nav { text-align: center; margin-bottom: 20px; }
     nav button { margin: 5px; font-size: 18px; padding: 5px 10px; border-radius: 25px; }
     h1 { text-align: center; }
-    input, button { padding: 5px; font-size: 14px; border-radius: 12px; }
+    input, button, select { padding: 5px; font-size: 14px; border-radius: 12px; }
     input[type="text"], input[type="number"] { 
       width: 50%; 
       margin: 8px auto; 
@@ -66,6 +66,7 @@
       z-index: 999;
     }
     .produtoCatalogo img { width: 100%; height: 100%; object-fit: cover; border-radius:5px; }
+    .listasBox { text-align:center; margin-bottom:10px; }
   </style>
 </head>
 <body>
@@ -76,6 +77,11 @@
   </nav>
 
   <div id="abaInicio">
+    <div class="listasBox">
+      <label>Lista atual:</label>
+      <select id="listaSelect" onchange="trocarLista()"></select>
+      <button onclick="novaLista()">➕ Nova lista</button>
+    </div>
     <div class="containerForm">
       <h2>Adicione um item</h2>
       <input type="text" id="itemInput" placeholder="Digite o nome do item">
@@ -83,7 +89,6 @@
       <input type="number" id="quantidadeInput" placeholder="Quantidade" step="1" min="1">
       <p id="mensagemErro" class="erro"></p>
     </div>
-
     <h2>Lista de Compras</h2>
     <ul id="listaCompras"></ul>
   </div>
@@ -110,12 +115,55 @@
 
 <script>
 let produtoSelecionadoModal = "";
+let listas = JSON.parse(localStorage.getItem("todasListas")) || { "Principal":[] };
+let listaAtual = localStorage.getItem("listaAtual") || "Principal";
 
+// ---------------- Funções para múltiplas listas ----------------
+function atualizarSelectListas(){
+  const sel = document.getElementById("listaSelect");
+  sel.innerHTML = "";
+  Object.keys(listas).forEach(nome=>{
+    const opt = document.createElement("option");
+    opt.value = nome;
+    opt.textContent = nome;
+    if(nome===listaAtual) opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function novaLista(){
+  const nome = prompt("Nome da nova lista:");
+  if(!nome) return;
+  if(listas[nome]){
+    alert("Já existe uma lista com esse nome.");
+    return;
+  }
+  listas[nome] = [];
+  listaAtual = nome;
+  salvarListas();
+  atualizarSelectListas();
+  carregarLista();
+}
+
+function trocarLista(){
+  const sel = document.getElementById("listaSelect");
+  listaAtual = sel.value;
+  localStorage.setItem("listaAtual", listaAtual);
+  carregarLista();
+}
+
+function salvarListas(){
+  localStorage.setItem("todasListas", JSON.stringify(listas));
+  localStorage.setItem("listaAtual", listaAtual);
+}
+
+// ---------------- Lógica de abas ----------------
 function abrirAba(qual) {
   document.getElementById("abaInicio").style.display = qual==='inicio' ? 'block':'none';
   document.getElementById("abaCatalogo").style.display = qual==='catalogo' ? 'block':'none';
 }
 
+// ---------------- Modal ----------------
 function abrirModal(produto){
   produtoSelecionadoModal = produto;
   document.getElementById("modalTitulo").textContent = produto;
@@ -123,25 +171,19 @@ function abrirModal(produto){
   document.getElementById("modalQtd").value = "";
   document.getElementById("modal").style.display = "flex";
 }
-
-function fecharModal(){
-  document.getElementById("modal").style.display = "none";
-}
-
+function fecharModal(){ document.getElementById("modal").style.display = "none"; }
 function confirmarModal(){
   let precoStr = document.getElementById("modalPreco").value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
   const qtd = parseInt(document.getElementById("modalQtd").value,10) || 1;
-  criarItem(produtoSelecionadoModal, preco, qtd, null);
+  criarItem(produtoSelecionadoModal, preco, qtd);
   fecharModal();
 }
 
+// ---------------- Funções principais ----------------
 function mascaraMoeda(elemento) {
   let valor = elemento.value.replace(/\D/g, '');
-  if (valor === '') {
-    elemento.value = "";
-    return;
-  }
+  if (valor === '') { elemento.value = ""; return; }
   while (valor.length < 3) valor = '0' + valor;
   const reais = valor.slice(0, valor.length - 2);
   const centavos = valor.slice(-2);
@@ -152,121 +194,100 @@ function adicionarItem(){
   const nome = document.getElementById("itemInput").value.trim();
   const precoStr = document.getElementById("precoInput").value.trim().replace("R$", "").replace(",",".");
   const preco = parseFloat(precoStr) || 0;
-  const qtdInput = document.getElementById("quantidadeInput");
-  const qtd = parseInt(qtdInput.value.trim());
+  const qtd = parseInt(document.getElementById("quantidadeInput").value.trim());
   const erro = document.getElementById("mensagemErro");
   erro.textContent = "";
   if(nome === "" || isNaN(qtd) || qtd<1){
     erro.textContent = "Preencha todos os campos corretamente.";
     return;
   }
-
-  criarItem(nome, preco, qtd, null);
+  criarItem(nome, preco, qtd);
   document.getElementById("itemInput").value = "";
   document.getElementById("precoInput").value = "";
-  qtdInput.value = "";
-  qtdInput.blur();
-
-  // ✅ devolve o foco com leve atraso para não "pular"
-  setTimeout(() => {
-    document.getElementById("itemInput").focus();
-  }, 100);
+  document.getElementById("quantidadeInput").value = "";
+  setTimeout(() => { document.getElementById("itemInput").focus(); }, 100);
 }
 
 function criarItem(nome, preco, qtd){
-  const lista = document.getElementById("listaCompras");
-  const li = document.createElement("li");
-  li.innerHTML = `
-    <input type="checkbox" onclick="marcarComprado(this)">
-    <span>${nome} - 
-    <input type="text" value="R$ ${preco.toFixed(2).replace(".",",")}"
-           oninput="mascaraMoeda(this);editarPrecoDireto(this)"
-           readonly
-           onfocus="this.removeAttribute('readonly');">
-    </span>
-    <div class="qtdControles">
-      <button class="iconBtn" onclick="alterarQtd(this,-1)">➖</button>
-      <span class="qtd">${qtd}</span>
-      <button class="iconBtn" onclick="alterarQtd(this,1)">➕</button>
-    </div>
-    <button class="iconBtn" onclick="removerItem(this)">🗑️</button>
-  `;
-  lista.appendChild(li);
-  atualizarTotal();
-  salvarLista();
+  // adiciona ao array da lista atual
+  listas[listaAtual].push({nome,preco,qtd,comprado:false});
+  ordenarListaAtual();
+  renderizarLista();
+  salvarListas();
 }
 
+function ordenarListaAtual(){
+  listas[listaAtual].sort((a,b)=> a.nome.localeCompare(b.nome,'pt-BR'));
+}
 
+function renderizarLista(){
+  const ul = document.getElementById("listaCompras");
+  ul.innerHTML = "";
+  listas[listaAtual].forEach((item,i)=>{
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <input type="checkbox" ${item.comprado?"checked":""} onclick="marcarComprado(${i},this)">
+      <span>${item.nome} - 
+        <input type="text" value="R$ ${item.preco.toFixed(2).replace(".",",")}"
+               oninput="mascaraMoeda(this);editarPrecoDireto(${i},this)"
+               readonly
+               onfocus="this.removeAttribute('readonly');">
+      </span>
+      <div class="qtdControles">
+        <button class="iconBtn" onclick="alterarQtd(${i},-1)">➖</button>
+        <span class="qtd">${item.qtd}</span>
+        <button class="iconBtn" onclick="alterarQtd(${i},1)">➕</button>
+      </div>
+      <button class="iconBtn" onclick="removerItem(${i})">🗑️</button>
+    `;
+    if(item.comprado) li.classList.add("comprado");
+    ul.appendChild(li);
+  });
+  atualizarTotal();
+}
 
-function editarPrecoDireto(input){
-  let precoStr = input.value.trim().replace("R$", "").replace(",",".");
+function editarPrecoDireto(i,input){
+  let precoStr = input.value.trim().replace("R$","").replace(",",".");
   let preco = parseFloat(precoStr);
   if (isNaN(preco) || preco < 0) preco = 0;
+  listas[listaAtual][i].preco = preco;
   input.value = "R$ " + preco.toFixed(2).replace(".",",");
   atualizarTotal();
-  salvarLista();
+  salvarListas();
 }
 
-function alterarQtd(btn, delta){
-  const spanQtd = btn.parentElement.querySelector(".qtd");
-  let qtd = parseInt(spanQtd.textContent,10)+delta;
-  if(qtd<1)qtd=1;
-  spanQtd.textContent = qtd;
-  atualizarTotal();
-  salvarLista();
+function alterarQtd(i,delta){
+  let item = listas[listaAtual][i];
+  item.qtd = Math.max(1, item.qtd + delta);
+  renderizarLista();
+  salvarListas();
 }
 
-function marcarComprado(cb){
-  const li=cb.parentElement;
-  li.classList.toggle("comprado",cb.checked);
-  salvarLista();
+function marcarComprado(i,cb){
+  listas[listaAtual][i].comprado = cb.checked;
+  renderizarLista();
+  salvarListas();
 }
 
-function removerItem(btn){
-  btn.parentElement.remove();
-  atualizarTotal();
-  salvarLista();
+function removerItem(i){
+  listas[listaAtual].splice(i,1);
+  renderizarLista();
+  salvarListas();
 }
 
 function atualizarTotal(){
-  let total=0;
-  document.querySelectorAll("#listaCompras li").forEach(li=>{
-    const precoStr = li.querySelector("span input").value.replace("R$","").replace(",",".");
-    const preco = parseFloat(precoStr) || 0;
-    const qtd = parseInt(li.querySelector(".qtd").textContent,10);
-    total+=preco*qtd;
-  });
-  document.getElementById("total").textContent=total.toFixed(2).replace(".",",");
-}
-
-function salvarLista(){
-  const dados=[];
-  document.querySelectorAll("#listaCompras li").forEach(li=>{
-    const texto = li.querySelector("span").textContent.split(" -")[0];
-    const nome = texto.trim();
-    const precoStr = li.querySelector("span input").value.replace("R$","").replace(",",".");
-    const preco = parseFloat(precoStr) || 0;
-    const qtd = parseInt(li.querySelector(".qtd").textContent,10);
-    const comprado = li.querySelector("input").checked;
-    dados.push({nome,preco,qtd,comprado});
-  });
-  localStorage.setItem("listaCompras",JSON.stringify(dados));
+  let total = listas[listaAtual].reduce((acc,it)=>acc+(it.preco*it.qtd),0);
+  document.getElementById("total").textContent = total.toFixed(2).replace(".",",");
 }
 
 function carregarLista(){
-  const dados=JSON.parse(localStorage.getItem("listaCompras"));
-  if(!dados)return;
-  dados.forEach(item=>{
-    criarItem(item.nome,item.preco,item.qtd,null);
-    const ultimo = document.querySelector("#listaCompras li:last-child input[type=checkbox]");
-    ultimo.checked = item.comprado;
-    if(item.comprado){
-      ultimo.parentElement.classList.add("comprado");
-    }
-  });
+  ordenarListaAtual();
+  renderizarLista();
+  atualizarSelectListas();
 }
 carregarLista();
 
+// Enter navegação
 document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
   ["keydown","keyup"].forEach(evName=>{
     input.addEventListener(evName, function(e) {
@@ -289,6 +310,7 @@ function filtrarCatalogo(){
   });
 }
 
+// ---------------- catálogo ----------------
 const nomes = [
   "Maçã","Banana","Laranja","Batata","Cenoura","Tomate","Alface","Couve","Espinafre",
   "Carne Bovina","Frango","Peixe","Ovos","Arroz","Feijão","Macarrão","Farinha de trigo","Açúcar","Sal","Óleo","Café","Enlatados",
@@ -296,7 +318,6 @@ const nomes = [
   "Detergente","Sabão em pó","Água sanitária","Amaciante","Desinfetante","Esponjas","Água","Sucos","Refrigerantes","Cervejas","Sucos em pó","Congelados","Laticínios","Pães e frios","Biscoitos",
   "Doces","Itens de papelaria","Descartáveis","Para animais","Para casa"
 ];
-
 const emojiMap = {
   "Maçã":"🍎","Banana":"🍌","Laranja":"🍊","Batata":"🥔","Cenoura":"🥕","Tomate":"🍅",
   "Alface":"🥬","Couve":"🥦","Espinafre":"🌿","Carne Bovina":"🥩","Frango":"🍗","Peixe":"🐟",
@@ -309,7 +330,6 @@ const emojiMap = {
   "Pães e frios":"🥖","Biscoitos":"🍪","Doces":"🍬","Itens de papelaria":"✏️",
   "Descartáveis":"🥡","Para animais":"🐶","Para casa":"🏠"
 };
-
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
   const emoji = emojiMap[nome] || "📦";
