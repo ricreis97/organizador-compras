@@ -67,10 +67,6 @@
     }
     .produtoCatalogo img { width: 100%; height: 100%; object-fit: cover; border-radius:5px; }
     .listasBox { text-align:center; margin-bottom:10px; }
-    .modo-escuro {
-      background-color: #333;
-      color: #fff;
-    }
   </style>
 </head>
 <body>
@@ -78,7 +74,6 @@
   <nav>
     <button onclick="abrirAba('inicio')">🏠 Início</button>
     <button onclick="abrirAba('catalogo')">🛒 Catálogo</button>
-    <button onclick="alternarModo()">🌙/🌞</button>
   </nav>
 
   <div id="abaInicio">
@@ -101,13 +96,6 @@
   <div id="abaCatalogo" style="display:none;">
     <h2>Catálogo de Produtos</h2>
     <input type="text" id="campoPesquisa" placeholder="Pesquisar produto..." onkeyup="filtrarCatalogo()">
-    <select id="categoriaSelect" onchange="filtrarPorCategoria()">
-      <option value="todas">Todas as categorias</option>
-      <option value="frutas">Frutas</option>
-      <option value="verduras">Verduras</option>
-      <option value="laticinios">Laticínios</option>
-      <!-- Outras categorias -->
-    </select>
     <div id="catalogoGrid"></div>
   </div>
 
@@ -126,8 +114,6 @@
   </div>
 
 <script>
-// Início do código JavaScript (sem alterações no restante do código)
-
 let produtoSelecionadoModal = "";
 let listas = JSON.parse(localStorage.getItem("todasListas")) || { "Principal":[] };
 let listaAtual = localStorage.getItem("listaAtual") || "Principal";
@@ -197,10 +183,11 @@ function confirmarModal(){
 // ---------------- Funções principais ----------------
 function mascaraMoeda(elemento) {
   let valor = elemento.value.replace(/\D/g, '');
-  if (valor === '') { elemento.value = 'R$ 0,00'; return; }
-  if (valor.length <= 2) valor = '0' + valor;
-  valor = valor.substring(0, valor.length - 2) + ',' + valor.substring(valor.length - 2);
-  elemento.value = 'R$ ' + valor;
+  if (valor === '') { elemento.value = ""; return; }
+  while (valor.length < 3) valor = '0' + valor;
+  const reais = valor.slice(0, valor.length - 2);
+  const centavos = valor.slice(-2);
+  elemento.value = "R$ " + parseInt(reais).toString() + ',' + centavos;
 }
 
 function adicionarItem(){
@@ -210,7 +197,7 @@ function adicionarItem(){
   const qtd = parseInt(document.getElementById("quantidadeInput").value.trim());
   const erro = document.getElementById("mensagemErro");
   erro.textContent = "";
-  if(nome === "" || isNaN(qtd) || qtd < 1){
+  if(nome === "" || isNaN(qtd) || qtd<1){
     erro.textContent = "Preencha todos os campos corretamente.";
     return;
   }
@@ -222,6 +209,7 @@ function adicionarItem(){
 }
 
 function criarItem(nome, preco, qtd){
+  // adiciona ao array da lista atual
   listas[listaAtual].push({nome,preco,qtd,comprado:false});
   ordenarListaAtual();
   renderizarLista();
@@ -235,7 +223,7 @@ function ordenarListaAtual(){
 function renderizarLista(){
   const ul = document.getElementById("listaCompras");
   ul.innerHTML = "";
-  listas[listaAtual].forEach((item, i)=>{
+  listas[listaAtual].forEach((item,i)=>{
     const li = document.createElement("li");
     li.innerHTML = `
       <input type="checkbox" ${item.comprado?"checked":""} onclick="marcarComprado(${i},this)">
@@ -245,7 +233,6 @@ function renderizarLista(){
                readonly
                onfocus="this.removeAttribute('readonly');">
       </span>
-      <span> - Total: R$ ${(item.preco * item.qtd).toFixed(2).replace(".",",")}</span>
       <div class="qtdControles">
         <button class="iconBtn" onclick="alterarQtd(${i},-1)">➖</button>
         <span class="qtd">${item.qtd}</span>
@@ -259,8 +246,8 @@ function renderizarLista(){
   atualizarTotal();
 }
 
-function editarPrecoDireto(i, input){
-  let precoStr = input.value.trim().replace("R$", "").replace(",",".");
+function editarPrecoDireto(i,input){
+  let precoStr = input.value.trim().replace("R$","").replace(",",".");
   let preco = parseFloat(precoStr);
   if (isNaN(preco) || preco < 0) preco = 0;
   listas[listaAtual][i].preco = preco;
@@ -269,14 +256,14 @@ function editarPrecoDireto(i, input){
   salvarListas();
 }
 
-function alterarQtd(i, delta){
+function alterarQtd(i,delta){
   let item = listas[listaAtual][i];
   item.qtd = Math.max(1, item.qtd + delta);
   renderizarLista();
   salvarListas();
 }
 
-function marcarComprado(i, cb){
+function marcarComprado(i,cb){
   listas[listaAtual][i].comprado = cb.checked;
   renderizarLista();
   salvarListas();
@@ -289,7 +276,7 @@ function removerItem(i){
 }
 
 function atualizarTotal(){
-  let total = listas[listaAtual].reduce((acc, it) => acc + (it.preco * it.qtd), 0);
+  let total = listas[listaAtual].reduce((acc,it)=>acc+(it.preco*it.qtd),0);
   document.getElementById("total").textContent = total.toFixed(2).replace(".",",");
 }
 
@@ -300,27 +287,48 @@ function carregarLista(){
 }
 carregarLista();
 
-// ---------------- Catalogo ----------------
+// Enter navegação
+document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
+  ["keydown","keyup"].forEach(evName=>{
+    input.addEventListener(evName, function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        } else {
+          adicionarItem();
+        }
+      }
+    });
+  });
+});
+
+function filtrarCatalogo(){
+  const filtro = document.getElementById("campoPesquisa").value.toLowerCase();
+  document.querySelectorAll(".produtoCatalogo").forEach(el=>{
+    el.style.display = el.textContent.toLowerCase().includes(filtro) ? 'flex':'none';
+  });
+}
+
+// ---------------- catálogo ----------------
 const nomes = [
-  "Maçã", "Banana", "Laranja", "Batata", "Cenoura", "Tomate", "Alface", "Couve", "Espinafre",
-  "Carne Bovina", "Frango", "Peixe", "Ovos", "Arroz", "Feijão", "Macarrão", "Farinha de trigo", 
-  "Açúcar", "Sal", "Óleo", "Café", "Enlatados", "Shampoo", "Condicionador", "Sabonete", 
-  "Pasta de dente", "Absorventes", "Desodorante", "Detergente", "Sabão em pó", "Água sanitária",
-  "Amaciante", "Desinfetante", "Esponjas", "Água", "Sucos", "Refrigerantes", "Cervejas", 
-  "Sucos em pó", "Congelados", "Laticínios", "Pães e frios", "Biscoitos", "Doces", 
-  "Itens de papelaria", "Descartáveis", "Para animais", "Para casa"
+  "Maçã","Banana","Laranja","Batata","Cenoura","Tomate","Alface","Couve","Espinafre",
+  "Carne Bovina","Frango","Peixe","Ovos","Arroz","Feijão","Macarrão","Farinha de trigo","Açúcar","Sal","Óleo","Café","Enlatados",
+  "Shampoo","Condicionador","Sabonete","Pasta de dente","Absorventes","Desodorante",
+  "Detergente","Sabão em pó","Água sanitária","Amaciante","Desinfetante","Esponjas","Água","Sucos","Refrigerantes","Cervejas","Sucos em pó","Congelados","Laticínios","Pães e frios","Biscoitos",
+  "Doces","Itens de papelaria","Descartáveis","Para animais","Para casa"
 ];
 const emojiMap = {
-  "Maçã":"🍎", "Banana":"🍌", "Laranja":"🍊", "Batata":"🥔", "Cenoura":"🥕", "Tomate":"🍅",
-  "Alface":"🥬", "Couve":"🥦", "Espinafre":"🌿", "Carne Bovina":"🥩", "Frango":"🍗", "Peixe":"🐟",
-  "Ovos":"🥚", "Arroz":"🍚", "Feijão":"🫘", "Macarrão":"🍝", "Farinha de trigo":"🌾",
-  "Açúcar":"🧂", "Sal":"🧂", "Óleo":"🛢️", "Café":"☕", "Enlatados":"🥫", "Shampoo":"🧴", 
-  "Condicionador":"🧴", "Sabonete":"🧼", "Pasta de dente":"🪥", "Absorventes":"🩸", 
-  "Desodorante":"🧴", "Detergente":"🧽", "Sabão em pó":"🧼", "Água sanitária":"🧪", 
-  "Amaciante":"🧴", "Desinfetante":"🧴", "Esponjas":"🧽", "Água":"💧", "Sucos":"🧃", 
-  "Refrigerantes":"🥤", "Cervejas":"🍺", "Sucos em pó":"🍹", "Congelados":"🧊", "Laticínios":"🧀",
-  "Pães e frios":"🥖", "Biscoitos":"🍪", "Doces":"🍬", "Itens de papelaria":"✏️",
-  "Descartáveis":"🥡", "Para animais":"🐶", "Para casa":"🏠"
+  "Maçã":"🍎","Banana":"🍌","Laranja":"🍊","Batata":"🥔","Cenoura":"🥕","Tomate":"🍅",
+  "Alface":"🥬","Couve":"🥦","Espinafre":"🌿","Carne Bovina":"🥩","Frango":"🍗","Peixe":"🐟",
+  "Ovos":"🥚","Arroz":"🍚","Feijão":"🫘","Macarrão":"🍝","Farinha de trigo":"🌾",
+  "Açúcar":"🧂","Sal":"🧂","Óleo":"🛢️","Café":"☕","Enlatados":"🥫",
+  "Shampoo":"🧴","Condicionador":"🧴","Sabonete":"🧼","Pasta de dente":"🪥","Absorventes":"🩸","Desodorante":"🧴","Detergente":"🧽",
+  "Sabão em pó":"🧼","Água sanitária":"🧪","Amaciante":"🧴","Desinfetante":"🧴",
+  "Esponjas":"🧽","Água":"💧","Sucos":"🧃","Refrigerantes":"🥤",
+  "Cervejas":"🍺","Sucos em pó":"🍹","Congelados":"🧊","Laticínios":"🧀",
+  "Pães e frios":"🥖","Biscoitos":"🍪","Doces":"🍬","Itens de papelaria":"✏️",
+  "Descartáveis":"🥡","Para animais":"🐶","Para casa":"🏠"
 };
 const grid = document.getElementById("catalogoGrid");
 nomes.forEach(nome => {
@@ -331,13 +339,7 @@ nomes.forEach(nome => {
       <span>${nome}</span>
     </div>`;
 });
-
-// ---------------- Função para filtrar por categoria ----------------
-function filtrarPorCategoria() {
-  const categoriaSelecionada = document.getElementById("categoriaSelect").value;
-  // Adicione a lógica para filtrar os produtos de acordo com a categoria selecionada
-}
-
 </script>
 </body>
 </html>
+
