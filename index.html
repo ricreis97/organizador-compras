@@ -19,7 +19,24 @@
       transition: background 0.3s;
     }
     nav button:hover { background: #0056b3; }
-    h1 { text-align: center; color: #333; }
+    h1 {
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+  color: #333;
+  text-align: center;
+}
+h1 span {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
     input, button, select {
       padding: 10px;
       font-size: 14px;
@@ -141,7 +158,7 @@
   </style>
 </head>
 <body>
-  <h1>SuperList - Quem organiza, economiza!</h1>
+  <h1><span>SuperList - Quem organiza, economiza!</span></h1>
   <nav>
     <button onclick="abrirAba('inicio')">🏠 Início</button>
     <button onclick="abrirAba('catalogo')">🛒 Catálogo</button>
@@ -403,5 +420,6 @@ nomes.forEach(nome => {
 </script>
 </body>
 </html>
+
 
 
