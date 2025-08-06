@@ -67,6 +67,7 @@
     }
     .produtoCatalogo img { width: 100%; height: 100%; object-fit: cover; border-radius:5px; }
     .listasBox { text-align:center; margin-bottom:10px; }
+    .valorFinal { color: red; font-weight: bold; margin-left: 10px; }
   </style>
 </head>
 <body>
@@ -118,7 +119,6 @@ let produtoSelecionadoModal = "";
 let listas = JSON.parse(localStorage.getItem("todasListas")) || { "Principal":[] };
 let listaAtual = localStorage.getItem("listaAtual") || "Principal";
 
-// ---------------- Funções para múltiplas listas ----------------
 function atualizarSelectListas(){
   const sel = document.getElementById("listaSelect");
   sel.innerHTML = "";
@@ -157,13 +157,11 @@ function salvarListas(){
   localStorage.setItem("listaAtual", listaAtual);
 }
 
-// ---------------- Lógica de abas ----------------
 function abrirAba(qual) {
   document.getElementById("abaInicio").style.display = qual==='inicio' ? 'block':'none';
   document.getElementById("abaCatalogo").style.display = qual==='catalogo' ? 'block':'none';
 }
 
-// ---------------- Modal ----------------
 function abrirModal(produto){
   produtoSelecionadoModal = produto;
   document.getElementById("modalTitulo").textContent = produto;
@@ -180,7 +178,6 @@ function confirmarModal(){
   fecharModal();
 }
 
-// ---------------- Funções principais ----------------
 function mascaraMoeda(elemento) {
   let valor = elemento.value.replace(/\D/g, '');
   if (valor === '') { elemento.value = ""; return; }
@@ -209,7 +206,6 @@ function adicionarItem(){
 }
 
 function criarItem(nome, preco, qtd){
-  // adiciona ao array da lista atual
   listas[listaAtual].push({nome,preco,qtd,comprado:false});
   ordenarListaAtual();
   renderizarLista();
@@ -238,6 +234,7 @@ function renderizarLista(){
         <span class="qtd">${item.qtd}</span>
         <button class="iconBtn" onclick="alterarQtd(${i},1)">➕</button>
       </div>
+      <span class="valorFinal">= R$ ${(item.preco * item.qtd).toFixed(2).replace(".",",")}</span>
       <button class="iconBtn" onclick="removerItem(${i})">🗑️</button>
     `;
     if(item.comprado) li.classList.add("comprado");
@@ -287,7 +284,6 @@ function carregarLista(){
 }
 carregarLista();
 
-// Enter navegação
 document.querySelectorAll("#itemInput, #precoInput, #quantidadeInput").forEach((input, index, inputs) => {
   ["keydown","keyup"].forEach(evName=>{
     input.addEventListener(evName, function(e) {
@@ -310,7 +306,6 @@ function filtrarCatalogo(){
   });
 }
 
-// ---------------- catálogo ----------------
 const nomes = [
   "Maçã","Banana","Laranja","Batata","Cenoura","Tomate","Alface","Couve","Espinafre",
   "Carne Bovina","Frango","Peixe","Ovos","Arroz","Feijão","Macarrão","Farinha de trigo","Açúcar","Sal","Óleo","Café","Enlatados",
@@ -342,4 +337,3 @@ nomes.forEach(nome => {
 </script>
 </body>
 </html>
-
